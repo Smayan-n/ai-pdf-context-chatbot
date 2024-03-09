@@ -9,11 +9,16 @@ import { QuestionAnswerTemplate, StandaloneQuestionTemplate } from "./promptTemp
 import { combineDocuments } from "./utils";
 import { retrieveVectorStore } from "./vectorStore";
 
-export async function getResp() {
+const OPENAI_API_KEY = "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";
+
+const PINECONE_API_KEY = "fb2b6fd7-8e41-449c-a5c5-75abd1676827";
+const PINECONE_INDEX = "ai-pdf-context-chatbot";
+
+export async function getResponseToQuestion(question: string) {
 	const standaloneQuestionPrompt = PromptTemplate.fromTemplate(StandaloneQuestionTemplate);
 	const answerPrompt = PromptTemplate.fromTemplate(QuestionAnswerTemplate);
 
-	const vectorStore = await retrieveVectorStore(new Pinecone({ apiKey: process.env.PINECONE_API_KEY! }));
+	const vectorStore = await retrieveVectorStore(new Pinecone({ apiKey: PINECONE_API_KEY! }));
 	const vectorStoreRetriever = vectorStore.asRetriever();
 
 	//create three separate chains
@@ -45,15 +50,13 @@ export async function getResp() {
 		},
 		answerChain, //use context and question to to get answer
 	]);
-
+	// const response = "none";
 	// const response = await chain.invoke({
-	// 	question: "how can i jump high?",
+	// 	question: question,
 	// });
-	// console.log(response);
-	// const s = combineDocuments(response);
-	// for (const document of response) {
-	// 	console.log(document.pageContent);
-	// }
+	const stream = await chain.stream({
+		question: question,
+	});
 
-	return "";
+	return stream;
 }

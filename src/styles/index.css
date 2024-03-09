@@ -1,0 +1,45 @@
+
+.main-chat-area::-webkit-scrollbar{
+    width: 10px;
+    border-radius: 5px;
+}
+.main-chat-area::-webkit-scrollbar-track {
+    background: #3d3d3d;
+
+}
+.main-chat-area::-webkit-scrollbar-thumb {
+    background: #969595;
+}
+
+.q-textarea{
+    z-index: 1000;
+}
+
+.q-textarea::-webkit-scrollbar{
+    width: 4px;
+    z-index: -1000;
+
+}
+
+.scrollbar-hidden{
+    overflow: hidden;
+}
+.scrollbar-visible{
+    overflow: auto;
+
+}
+
+.q-textarea::-webkit-scrollbar-track {
+    background: transparent;
+
+
+}
+.q-textarea::-webkit-scrollbar-thumb {
+    background: #626262;
+
+}
+
+.q-textarea:focus{
+    outline: none;
+
+}

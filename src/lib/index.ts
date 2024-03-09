@@ -1,4 +1,4 @@
-import { getResp } from "./langchain";
+import { getResponseToQuestion } from "./langchain";
 import { getChunkedDocsFromPDF } from "./pdfLoader";
 import { createEmbeddingsAndStoreDocs } from "./vectorStore";
 
@@ -12,5 +12,5 @@ async function test() {
 	// console.log("data stored successfully");
 
 	// console.log(process.env.OPENAI_API_KEY);
-	getResp();
+	getResponseToQuestion();
 }

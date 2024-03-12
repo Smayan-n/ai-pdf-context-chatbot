@@ -1,5 +1,6 @@
 import { PDFLoader } from "langchain/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
+import { combineDocuments } from "./utils";
 
 /**Given a path to a pdf, reads pdf and returns it back in chunks */
 export async function getChunkedDocsFromPDF(path: string) {
@@ -12,7 +13,7 @@ export async function getChunkedDocsFromPDF(path: string) {
 		console.log("reached 1");
 
 		//chunk docs using Recursive text splitter
-		//NOTE: experiment with these values
+		//NOTE: experiment with these values and maybe add more properties?
 		const splitter = new RecursiveCharacterTextSplitter({
 			chunkSize: 500,
 			chunkOverlap: 50,

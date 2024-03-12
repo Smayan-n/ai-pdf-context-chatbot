@@ -1,6 +1,6 @@
 "use client";
 import { getResponseToQuestion } from "@/lib/langchain";
-import { Message, scrollChatToBottom } from "@/lib/utils";
+import { Message, formatMessagesIntoConvHistory, scrollChatToBottom } from "@/lib/utils";
 import React, { Component, RefObject, useEffect, useRef, useState } from "react";
 import "../styles/index.css";
 import Form from "./Form";
@@ -45,12 +45,15 @@ function ChatInterface() {
 		//fetch answer from server
 		setLoading(true);
 		const userQuestion = getLastMessage().content;
-		const response = await fetch("/api/chat", {
+		const response = await fetch("/api/answer", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 			},
-			body: JSON.stringify({ question: userQuestion }),
+			body: JSON.stringify({
+				question: userQuestion,
+				conversationHistory: formatMessagesIntoConvHistory(messageHistory),
+			}),
 		});
 		setLoading(false);
 
@@ -93,15 +96,29 @@ function ChatInterface() {
 	};
 
 	return (
-		<div className="rounded-2xl h-[85vh] flex flex-col justify-between p-5">
-			<div className="main-chat-area bg-inherit scroll-m-4 h-[95%] flex p-6 flex-col overflow-auto mb-4">
-				{messageHistory.map((msg, idx) => (
-					<MessageCard role={msg.role} content={msg.content} key={idx} />
-				))}
-				{dataStreaming && <MessageCard role={"ai"} content={streamedAns} key={-1} />}
-				<div ref={chatContainerRef}></div>
+		// <div className="ml-64 flex flex-col justify-start align-middle border-red-500 border-8">
+		// 	<div>Hello World</div>
+		// 	<div>Hello World 2</div>
+		// </div>
+		<div className="h-[100vh] ml-64">
+			<div className="rounded-2xl h-full flex flex-col justify-between p-8">
+				<div className="main-chat-area bg-inherit scroll-m-4 h-full flex p-6 flex-col overflow-auto mb-4">
+					{messageHistory.length !== 0 ? (
+						messageHistory.map((msg, idx) => (
+							<MessageCard role={msg.role} content={msg.content} key={idx} />
+						))
+					) : (
+						<div className="flex align-middle justify-center">
+							<div className="text-2xl">
+								Hello! I&apos;m a helpful PDF-analyzing bot! How can I help you today?
+							</div>
+						</div>
+					)}
+					{dataStreaming && <MessageCard role={"ai"} content={streamedAns} key={-1} />}
+					<div ref={chatContainerRef}></div>
+				</div>
+				<Form loading={loading} placeholder={"Chat with AI..."} handleSubmit={onSubmit}></Form>
 			</div>
-			<Form loading={loading} placeholder={"Type to chat with AI..."} handleSubmit={onSubmit}></Form>
 		</div>
 	);
 }

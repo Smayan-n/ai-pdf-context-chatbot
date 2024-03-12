@@ -9,16 +9,11 @@ import { QuestionAnswerTemplate, StandaloneQuestionTemplate } from "./promptTemp
 import { combineDocuments } from "./utils";
 import { retrieveVectorStore } from "./vectorStore";
 
-const OPENAI_API_KEY = "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";
-
-const PINECONE_API_KEY = "fb2b6fd7-8e41-449c-a5c5-75abd1676827";
-const PINECONE_INDEX = "ai-pdf-context-chatbot";
-
-export async function getResponseToQuestion(question: string) {
+export async function getResponseToQuestion(question: string, conversationHistory: string) {
 	const standaloneQuestionPrompt = PromptTemplate.fromTemplate(StandaloneQuestionTemplate);
 	const answerPrompt = PromptTemplate.fromTemplate(QuestionAnswerTemplate);
 
-	const vectorStore = await retrieveVectorStore(new Pinecone({ apiKey: PINECONE_API_KEY! }));
+	const vectorStore = await retrieveVectorStore(new Pinecone({ apiKey: process.env.PINECONE_API_KEY! }));
 	const vectorStoreRetriever = vectorStore.asRetriever();
 
 	//create three separate chains
@@ -36,7 +31,19 @@ export async function getResponseToQuestion(question: string) {
 		combineDocuments,
 	]);
 
-	//answer chain, uses the context of docs from the retriever chain along with the user question to answer the question as closely as possible
+	const chain1 = RunnableSequence.from([
+		{
+			standaloneQuestion: standaloneQuestionChain,
+		},
+		retrieverChain,
+	]);
+
+	// const chain1Response = await chain1.invoke({
+	// 	question: question,
+	// });
+	// console.log(combineDocuments(chain1Response));
+
+	// //answer chain, uses the context of docs from the retriever chain along with the user question to answer the question as closely as possible
 	const answerChain = RunnableSequence.from([answerPrompt, chatModel, new StringOutputParser()]);
 
 	const chain = RunnableSequence.from([
@@ -47,15 +54,16 @@ export async function getResponseToQuestion(question: string) {
 		{
 			context: retrieverChain, //set output of retriever chain to context so it can be used in next step
 			question: ({ originalInput }) => originalInput.question, //question from original input (passed in chain.invoke)
+			conversationHistory: ({ originalInput }) => originalInput.conversationHistory,
 		},
 		answerChain, //use context and question to to get answer
 	]);
-	// const response = "none";
 	// const response = await chain.invoke({
 	// 	question: question,
 	// });
 	const stream = await chain.stream({
 		question: question,
+		conversationHistory: conversationHistory,
 	});
 
 	return stream;

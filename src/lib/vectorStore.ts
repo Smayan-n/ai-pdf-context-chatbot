@@ -14,8 +14,7 @@ export async function createEmbeddingsAndStoreDocs(
 	//store embedded docs in pinecone database
 	await PineconeStore.fromDocuments(splitDocs, embeddingsModel, {
 		pineconeIndex: pineconeIndex,
-		maxConcurrency: 5,
-		// textKey: "text",
+		textKey: "text",
 	});
 }
 
@@ -26,4 +25,10 @@ export async function retrieveVectorStore(pineconeClient: Pinecone) {
 	//get vectorStore
 	const vectorStore = await PineconeStore.fromExistingIndex(embeddingsModel, { pineconeIndex: pineconeIndex });
 	return vectorStore;
+}
+
+/**Dev function to clear pinecone index */
+export async function deleteDocsInIndex(pineconeClient: Pinecone) {
+	const pineconeIndex = pineconeClient.index(process.env.PINECONE_INDEX!);
+	await pineconeIndex.deleteAll();
 }

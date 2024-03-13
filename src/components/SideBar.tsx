@@ -1,32 +1,26 @@
 "use client";
 import { Chat, generateRandomId } from "@/lib/utils";
+import { validateHeaderName } from "http";
 import React, { Component, useEffect, useState } from "react";
 import SideBarItem from "./SideBarItem";
 
-//Using local store for now to tore message history and chats
-function SideBar() {
-	const [chatList, setChatList] = useState<Chat[] | undefined>(undefined);
+interface SideBarProps {
+	chatList: Chat[];
+	onNewChatCreate: (name: string) => void;
+	currentChat: Chat | undefined;
+}
 
-	useEffect(() => {
-		//get chats from local store and update state
-		// const chats = localStorage.getItem("chatList");
-		// console.log(chats);
-		// if (chats !== null) {
-		// 	setChatList(JSON.parse(chats) as Chat[]);
-		// }
-	}, []);
+function SideBar(props: SideBarProps) {
+	const { chatList, onNewChatCreate, currentChat: currChat } = props;
 
-	useEffect(() => {
-		//update local store
-		localStorage.setItem("chatList", JSON.stringify(chatList));
-	}, [chatList]);
+	const [nameNewChat, setNameNewChat] = useState(false);
 
-	const handleNewChat = () => {
-		const chat: Chat = { chatName: "new chat", chatId: generateRandomId() };
-		if (chatList) {
-			setChatList([...chatList, chat]);
-		} else {
-			setChatList([chat]);
+	const handleSetChatName = (name: string) => {
+		//when name is input correctly
+		//add new chat to list in parent component
+		if (name !== "") {
+			onNewChatCreate(name);
+			setNameNewChat(false);
 		}
 	};
 
@@ -37,8 +31,11 @@ function SideBar() {
 				className="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0 sidebar"
 				aria-label="Sidebar"
 			>
-				<div className="h-full px-3 py-4 overflow-y-auto sidebar z-10" onClick={handleNewChat}>
-					<a className="flex items-center p-2 text-white rounded-lg hover:bg-gray-700 hover:opacity-95 group hover:cursor-pointer">
+				<div className="h-full px-3 py-4 overflow-y-auto sidebar z-10">
+					<a
+						onClick={() => setNameNewChat(true)}
+						className="flex items-center p-2 text-white rounded-lg hover:bg-gray-700 hover:opacity-95 group hover:cursor-pointer"
+					>
 						<svg
 							className="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
 							aria-hidden="true"
@@ -58,8 +55,20 @@ function SideBar() {
 						<ul className="space-y-2 font-medium">
 							{chatList &&
 								chatList.map((chat) => {
-									return <SideBarItem key={chat.chatId} title={chat.chatName} id={chat.chatId} />;
+									return (
+										<SideBarItem
+											key={chat.chatId}
+											title={chat.chatName}
+											id={chat.chatId}
+											selected={currChat ? currChat.chatId === chat.chatId : false}
+										/>
+									);
 								})}
+							{/* <SideBarItem title="ok" id="ok"></SideBarItem>
+							<SideBarItem title="hi" id="oha"></SideBarItem> */}
+							{nameNewChat && (
+								<SideBarItem key={""} title={""} id={""} onSetChatName={handleSetChatName} />
+							)}
 						</ul>
 					</div>
 				</div>

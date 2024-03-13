@@ -1,10 +1,15 @@
+"use client";
+import { useEffect } from "react";
 import SideBar from "./SideBar";
 
-const Layout = ({ children }) => {
+const Layout = (props: any) => {
+	useEffect(() => {
+		console.log("ok", props.id);
+	});
 	return (
 		<div>
 			<SideBar></SideBar>
-			{children}
+			{props.children}
 		</div>
 	);
 };

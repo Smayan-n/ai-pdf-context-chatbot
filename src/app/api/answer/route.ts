@@ -8,16 +8,9 @@ export async function POST(request: Request) {
 
 	//make call to api we created in lib
 	//stream
-	const answer = await getResponseToQuestion(question, conversationHistory);
+	const stream = await getResponseToQuestion(question, conversationHistory);
 
-	// return answer;
-	// return new Response(JSON.stringify({ answer: answer }), {
-	// 	headers: {
-	// 		"Content-Type": "application/json",
-	// 	},
-	// 	status: 200,
-	// });
-	return new Response(answer, {
+	return new Response(stream, {
 		headers: {
 			"Content-Type": "application/octet-stream",
 		},

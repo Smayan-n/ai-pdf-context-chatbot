@@ -1,9 +1,12 @@
+import App from "@/components/App";
 import ChatInterface from "@/components/ChatInterface";
 import SideBar from "@/components/SideBar";
+import SideBarItem from "@/components/SideBarItem";
 import { getResponseToQuestion } from "@/lib/langchain";
 import { getChunkedDocsFromPDF } from "@/lib/pdfLoader";
 import { createEmbeddingsAndStoreDocs, deleteDocsInIndex } from "@/lib/vectorStore";
 import { Pinecone } from "@pinecone-database/pinecone";
+import "../../styles/index.css";
 
 export default async function ChatsHome() {
 	//load new pdf
@@ -15,9 +18,12 @@ export default async function ChatsHome() {
 	// console.log("done");
 
 	return (
+		// <>
+		// 	{/* <SideBar></SideBar> */}
+		// 	<div className="h-[100vh] ml-64">No Chat Open!</div>
+		// </>
 		<>
-			<SideBar></SideBar>
-			<div className="h-[100vh] ml-64">No Chat Open!</div>
+			<App chatId="null"></App>
 		</>
 	);
 }

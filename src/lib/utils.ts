@@ -2,7 +2,7 @@ import { Document } from "langchain/document";
 
 export type Message = { role: "user" | "ai"; content: string };
 
-export type Chat = { messages?: Message[]; chatId: string; chatName: string };
+export type Chat = { chatId: string; chatName: string };
 
 /** extract all documents's page contents and join into paragraphs*/
 export function combineDocuments(docs: Document<Record<string, any>>[]) {

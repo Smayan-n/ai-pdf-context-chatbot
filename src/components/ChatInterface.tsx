@@ -1,19 +1,24 @@
 "use client";
 import { getResponseToQuestion } from "@/lib/langchain";
-import { Message, formatMessagesIntoConvHistory, scrollChatToBottom } from "@/lib/utils";
+import { Chat, Message, formatMessagesIntoConvHistory, scrollChatToBottom } from "@/lib/utils";
 import React, { Component, RefObject, useEffect, useRef, useState } from "react";
 import "../styles/index.css";
 import Form from "./Form";
 import MessageCard from "./MessageCard";
 import Spinner from "./Spinner";
 
-function ChatInterface() {
+interface ChatInterfaceProps {
+	currentChat: Chat | undefined;
+}
+
+function ChatInterface(props: ChatInterfaceProps) {
+	const { currentChat } = props;
+
+	//chat (name and id)
 	//array of all messages in the session
-	const [messageHistory, setMessageHistory] = useState<Message[]>([]);
+	const [messages, setMessages] = useState<Message[]>([]);
 	//used to temporarily write data to ui until streaming is over
 	const [streamedAns, setStreamedAns] = useState<string>("");
-	//true when data is being streamed from server -
-	const [dataStreaming, setDataStreaming] = useState(false);
 	//to store whether the user is waiting for ai response or not
 	const [loading, setLoading] = useState<boolean>(false);
 
@@ -25,20 +30,42 @@ function ChatInterface() {
 			role: "user",
 			content: question,
 		};
-		setMessageHistory([...messageHistory, msg]);
+		setMessages([...messages, msg]);
 	};
+
+	//fetch chat from localstore
+	useEffect(() => {
+		const msgs = localStorage.getItem(`chat-msgs-${currentChat?.chatId}`);
+		if (msgs !== "undefined") {
+			const parsed = JSON.parse(msgs as string);
+			if (parsed) {
+				// console.log("loading", parsed, chatId);
+				// console.log(parsed.messages);
+				setMessages(parsed.messages as Message[]);
+			}
+		}
+	}, [currentChat]);
+
+	//store back in local store
+	useEffect(() => {
+		if (messages.length !== 0) {
+			const str = JSON.stringify(messages);
+			// console.log("storing", str, chatId);
+			localStorage.setItem(`chat-msgs-${currentChat?.chatId}`, str);
+		}
+	}, [messages, currentChat]);
 
 	useEffect(() => {
 		//scroll to bottom
 		scrollChatToBottom(chatContainerRef);
 		//fetch answer from server only if the last message in history is from user (prevents infinite render loop)
-		if (messageHistory.length !== 0 && getLastMessage().role === "user") {
+		if (messages.length !== 0 && getLastMessage().role === "user") {
 			getAnswer();
 		}
-	}, [messageHistory]);
+	}, [messages]);
 
 	const getLastMessage = (): Message => {
-		return messageHistory[messageHistory.length - 1];
+		return messages[messages.length - 1];
 	};
 
 	const getAnswer = async () => {
@@ -52,12 +79,11 @@ function ChatInterface() {
 			},
 			body: JSON.stringify({
 				question: userQuestion,
-				conversationHistory: formatMessagesIntoConvHistory(messageHistory),
+				conversationHistory: formatMessagesIntoConvHistory(messages),
 			}),
 		});
 		setLoading(false);
 
-		setDataStreaming(true);
 		//make sure body exists and getReader is a valid function
 		if (response.body && typeof response.body.getReader === "function") {
 			const reader = response.body.getReader();
@@ -80,14 +106,13 @@ function ChatInterface() {
 					// Update state with as streamed data comes in to get that typing effect
 					setStreamedAns(runningSumText);
 				}
-				setDataStreaming(false);
 				setStreamedAns("");
 				//add full answer to message history
 				const msg: Message = {
 					role: "ai",
 					content: runningSumText,
 				};
-				setMessageHistory([...messageHistory, msg]);
+				setMessages([...messages, msg]);
 			};
 
 			// Start reading and processing the stream
@@ -103,10 +128,8 @@ function ChatInterface() {
 		<div className="h-[100vh] ml-64">
 			<div className="rounded-2xl h-full flex flex-col justify-between p-8">
 				<div className="main-chat-area bg-inherit scroll-m-4 h-full flex p-6 flex-col overflow-auto mb-4">
-					{messageHistory.length !== 0 ? (
-						messageHistory.map((msg, idx) => (
-							<MessageCard role={msg.role} content={msg.content} key={idx} />
-						))
+					{messages.length !== 0 ? (
+						messages.map((msg, idx) => <MessageCard role={msg.role} content={msg.content} key={idx} />)
 					) : (
 						<div className="flex align-middle justify-center">
 							<div className="text-2xl">
@@ -114,7 +137,7 @@ function ChatInterface() {
 							</div>
 						</div>
 					)}
-					{dataStreaming && <MessageCard role={"ai"} content={streamedAns} key={-1} />}
+					{streamedAns.length !== 0 && <MessageCard role={"ai"} content={streamedAns} key={-1} />}
 					<div ref={chatContainerRef}></div>
 				</div>
 				<Form loading={loading} placeholder={"Chat with AI..."} handleSubmit={onSubmit}></Form>

@@ -2,6 +2,7 @@
 import { Chat, Message, formatMessagesIntoConvHistory, generateRandomId } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import ChatInterface from "./ChatInterface";
+import FileInput from "./FileInput";
 import SideBar from "./SideBar";
 
 //Main application component that will keep track of all state
@@ -47,10 +48,21 @@ function App(props: AppProps) {
 		}
 	};
 
+	//render different components based on passed in chatId
+	//if chatId = 'no-chat-open' dont display chatInterface
 	return (
 		<>
 			<SideBar onNewChatCreate={handleNewChatCreate} chatList={chatList} currentChat={currentChat}></SideBar>
-			<ChatInterface currentChat={currentChat}></ChatInterface>
+			<div className="h-[100vh] ml-64">
+				{/* {chatId !== "no-chat-open" ? (
+					<ChatInterface currentChat={currentChat}></ChatInterface>
+				) : (
+					<div className="text-2xl flex items-center justify-center h-screen p-10">
+						No chat open! Please select a chat or create a new one
+					</div>
+				)} */}
+				<FileInput />
+			</div>
 		</>
 	);
 }

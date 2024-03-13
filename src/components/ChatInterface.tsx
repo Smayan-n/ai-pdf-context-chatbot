@@ -121,27 +121,21 @@ function ChatInterface(props: ChatInterfaceProps) {
 	};
 
 	return (
-		// <div className="ml-64 flex flex-col justify-start align-middle border-red-500 border-8">
-		// 	<div>Hello World</div>
-		// 	<div>Hello World 2</div>
-		// </div>
-		<div className="h-[100vh] ml-64">
-			<div className="rounded-2xl h-full flex flex-col justify-between p-8">
-				<div className="main-chat-area bg-inherit scroll-m-4 h-full flex p-6 flex-col overflow-auto mb-4">
-					{messages.length !== 0 ? (
-						messages.map((msg, idx) => <MessageCard role={msg.role} content={msg.content} key={idx} />)
-					) : (
-						<div className="flex align-middle justify-center">
-							<div className="text-2xl">
-								Hello! I&apos;m a helpful PDF-analyzing bot! How can I help you today?
-							</div>
+		<div className="rounded-2xl h-full flex flex-col justify-between p-8">
+			<div className="main-chat-area bg-inherit scroll-m-4 h-full flex p-6 flex-col overflow-auto mb-4">
+				{messages.length !== 0 ? (
+					messages.map((msg, idx) => <MessageCard role={msg.role} content={msg.content} key={idx} />)
+				) : (
+					<div className="flex items-center justify-center">
+						<div className="text-2xl">
+							Hello! I&apos;m a helpful PDF-analyzing bot! How can I help you today?
 						</div>
-					)}
-					{streamedAns.length !== 0 && <MessageCard role={"ai"} content={streamedAns} key={-1} />}
-					<div ref={chatContainerRef}></div>
-				</div>
-				<Form loading={loading} placeholder={"Chat with AI..."} handleSubmit={onSubmit}></Form>
+					</div>
+				)}
+				{streamedAns.length !== 0 && <MessageCard role={"ai"} content={streamedAns} key={-1} />}
+				<div ref={chatContainerRef}></div>
 			</div>
+			<Form loading={loading} placeholder={"Chat with AI..."} handleSubmit={onSubmit}></Form>
 		</div>
 	);
 }

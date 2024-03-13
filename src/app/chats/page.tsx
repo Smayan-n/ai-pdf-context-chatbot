@@ -23,7 +23,7 @@ export default async function ChatsHome() {
 		// 	<div className="h-[100vh] ml-64">No Chat Open!</div>
 		// </>
 		<>
-			<App chatId="null"></App>
+			<App chatId="no-chat-open"></App>
 		</>
 	);
 }

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import ChatInterface from "./ChatInterface";
 import FileInput from "./FileInput";
 import SideBar from "./SideBar";
+import Spinner from "./Spinner";
 
 //Main application component that will keep track of all state
 interface AppProps {
@@ -21,8 +22,8 @@ function App(props: AppProps) {
 	useEffect(() => {
 		//get chats from local store and update state
 		const chats = localStorage.getItem("chat-list");
-		if (chats !== "undefined") {
-			console.log("loaded", chats);
+		// console.log(chats === "undefined");
+		if (chats !== "undefined" && chats !== null) {
 			setChatList(JSON.parse(chats!));
 		}
 	}, []);
@@ -30,7 +31,6 @@ function App(props: AppProps) {
 	useEffect(() => {
 		//update local store
 		if (chatList.length !== 0) {
-			console.log("saved", chatList);
 			localStorage.setItem("chat-list", JSON.stringify(chatList));
 		}
 		//and also set current chat with id passed in as prop
@@ -40,7 +40,7 @@ function App(props: AppProps) {
 
 	const handleNewChatCreate = (name: string) => {
 		//add new chat to list
-		const chat: Chat = { chatName: name, chatId: generateRandomId() };
+		const chat: Chat = { chatName: name, chatId: generateRandomId(), new: true };
 		if (chatList) {
 			setChatList([...chatList, chat]);
 		} else {
@@ -48,20 +48,40 @@ function App(props: AppProps) {
 		}
 	};
 
+	//called when a pdf file for a new chat is uploaded to pinecone successfully
+	const handleFileUploaded = (chatFor: Chat) => {
+		//change 'new' property of chatFor in list to false so chatInterface can be rendered
+		const copyList = chatList.slice(0);
+		const changedList = copyList.map((chat) => {
+			if (chat.chatId === chatFor.chatId) {
+				return { ...chat, new: false };
+			} else {
+				return chat;
+			}
+		});
+		setChatList(changedList);
+	};
+
 	//render different components based on passed in chatId
-	//if chatId = 'no-chat-open' dont display chatInterface
+	//if chatId = 'no-chat-open' don't display chatInterface
 	return (
 		<>
 			<SideBar onNewChatCreate={handleNewChatCreate} chatList={chatList} currentChat={currentChat}></SideBar>
 			<div className="h-[100vh] ml-64">
-				{/* {chatId !== "no-chat-open" ? (
-					<ChatInterface currentChat={currentChat}></ChatInterface>
-				) : (
+				{currentChat === undefined ? (
+					<div className="flex h-[100%] justify-center items-center flex-col gap-2">
+						<Spinner />
+					</div>
+				) : chatId === "no-chat-open" ? (
 					<div className="text-2xl flex items-center justify-center h-screen p-10">
 						No chat open! Please select a chat or create a new one
 					</div>
-				)} */}
-				<FileInput />
+				) : currentChat?.new || currentChat === undefined ? (
+					<FileInput currentChat={currentChat} onFileUploaded={handleFileUploaded} />
+				) : (
+					<ChatInterface currentChat={currentChat}></ChatInterface>
+				)}
+				{}
 			</div>
 		</>
 	);

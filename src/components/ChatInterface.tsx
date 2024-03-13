@@ -1,6 +1,6 @@
 "use client";
 import { getResponseToQuestion } from "@/lib/langchain";
-import { Chat, Message, formatMessagesIntoConvHistory, scrollChatToBottom } from "@/lib/utils";
+import { Chat, Message, formatMessagesIntoConvHistory, getNamespaceFromChat, scrollChatToBottom } from "@/lib/utils";
 import React, { Component, RefObject, useEffect, useRef, useState } from "react";
 import "../styles/index.css";
 import Form from "./Form";
@@ -36,12 +36,12 @@ function ChatInterface(props: ChatInterfaceProps) {
 	//fetch chat from localstore
 	useEffect(() => {
 		const msgs = localStorage.getItem(`chat-msgs-${currentChat?.chatId}`);
-		if (msgs !== "undefined") {
+		if (msgs !== "undefined" && msgs !== null) {
 			const parsed = JSON.parse(msgs as string);
 			if (parsed) {
 				// console.log("loading", parsed, chatId);
 				// console.log(parsed.messages);
-				setMessages(parsed.messages as Message[]);
+				setMessages(parsed as Message[]);
 			}
 		}
 	}, [currentChat]);
@@ -53,7 +53,7 @@ function ChatInterface(props: ChatInterfaceProps) {
 			// console.log("storing", str, chatId);
 			localStorage.setItem(`chat-msgs-${currentChat?.chatId}`, str);
 		}
-	}, [messages, currentChat]);
+	}, [messages]);
 
 	useEffect(() => {
 		//scroll to bottom
@@ -69,6 +69,10 @@ function ChatInterface(props: ChatInterfaceProps) {
 	};
 
 	const getAnswer = async () => {
+		if (!currentChat) {
+			return;
+		}
+
 		//fetch answer from server
 		setLoading(true);
 		const userQuestion = getLastMessage().content;
@@ -79,6 +83,7 @@ function ChatInterface(props: ChatInterfaceProps) {
 			},
 			body: JSON.stringify({
 				question: userQuestion,
+				namespace: getNamespaceFromChat(currentChat),
 				conversationHistory: formatMessagesIntoConvHistory(messages),
 			}),
 		});
@@ -123,8 +128,8 @@ function ChatInterface(props: ChatInterfaceProps) {
 	return (
 		<div className="rounded-2xl h-full flex flex-col justify-between p-8">
 			<div className="main-chat-area bg-inherit scroll-m-4 h-full flex p-6 flex-col overflow-auto mb-4">
-				{messages.length !== 0 ? (
-					messages.map((msg, idx) => <MessageCard role={msg.role} content={msg.content} key={idx} />)
+				{messages?.length !== 0 ? (
+					messages?.map((msg, idx) => <MessageCard role={msg.role} content={msg.content} key={idx} />)
 				) : (
 					<div className="flex items-center justify-center">
 						<div className="text-2xl">

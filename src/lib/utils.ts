@@ -2,7 +2,7 @@ import { Document } from "langchain/document";
 
 export type Message = { role: "user" | "ai"; content: string };
 
-export type Chat = { chatId: string; chatName: string };
+export type Chat = { chatId: string; chatName: string; new: boolean };
 
 /** extract all documents's page contents and join into paragraphs*/
 export function combineDocuments(docs: Document<Record<string, any>>[]) {
@@ -40,4 +40,9 @@ export function scrollChatToBottom(containerRef: React.RefObject<HTMLElement>) {
 export function generateRandomId() {
 	//Math.random() and converts it to a base-36 string (using characters 0-9 and a-z) using toString(36).
 	return Math.random().toString(36).slice(2);
+}
+
+/** returns a string that can be used as a pinecone namespace based on the chat name and id */
+export function getNamespaceFromChat(chat: Chat): string {
+	return chat.chatId;
 }

@@ -4,12 +4,12 @@ import { getResponseToQuestion } from "@/lib/langchain";
 export async function POST(request: Request) {
 	const body = await request.json();
 	const question = body.question ?? "no question";
+	const namespace = body.namespace ?? "";
 	const conversationHistory = body.conversationHistory ?? "No conversation history";
 
 	//make call to api we created in lib
 	//stream
-	const stream = await getResponseToQuestion(question, conversationHistory);
-
+	const stream = await getResponseToQuestion(question, conversationHistory, namespace);
 	return new Response(stream, {
 		headers: {
 			"Content-Type": "application/octet-stream",

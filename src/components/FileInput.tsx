@@ -1,9 +1,20 @@
-import { ChangeEvent, useRef, useState } from "react";
+import { Chat, getNamespaceFromChat } from "@/lib/utils";
+import { Blob } from "buffer";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
+import Spinner from "./Spinner";
 
-interface FileInputProps {}
+interface FileInputProps {
+	currentChat: Chat | undefined;
+	onFileUploaded: (chatFor: Chat) => void;
+}
 
 function FileInput(props: FileInputProps) {
+	const { currentChat, onFileUploaded } = props;
+
 	const [dragActive, setDragActive] = useState(false);
+	const [file, setFile] = useState<File | undefined>(undefined);
+	const [uploadLoading, setUploadLoading] = useState(false);
+
 	const fileInputRef = useRef<HTMLInputElement>(null);
 
 	const handleDragOver = (e: any) => {
@@ -32,7 +43,7 @@ function FileInput(props: FileInputProps) {
 		//get file
 		if (e.dataTransfer.files && e.dataTransfer.files[0]) {
 			const file: File = e.dataTransfer.files[0];
-			console.log(file);
+			setFile(file);
 		}
 	};
 
@@ -44,9 +55,37 @@ function FileInput(props: FileInputProps) {
 		if (e.target.files) {
 			const files = Array.from(e.target.files);
 			if (files[0]) {
-				console.log(files[0]);
+				const file = files[0];
+				setFile(file);
 			}
 		}
+	};
+
+	//load and store pdf file given to pinecone
+	//post request to server which will call api
+	useEffect(() => {
+		if (file) {
+			uploadFileToPinecone();
+		}
+	}, [file]);
+
+	const uploadFileToPinecone = async () => {
+		if (!currentChat || !file) {
+			return;
+		}
+		setUploadLoading(true);
+		//send over file as blob to server
+		const formData = new FormData();
+		formData.append("file", file);
+		formData.append("namespace", getNamespaceFromChat(currentChat));
+		const response = await fetch("/api/upload-file", {
+			method: "POST",
+			body: formData,
+		});
+		setUploadLoading(false);
+		// console.log(response);
+		//when upload is successful, callback func
+		onFileUploaded(currentChat);
 	};
 
 	return (
@@ -82,6 +121,14 @@ function FileInput(props: FileInputProps) {
 					</span>{" "}
 					to upload
 				</p>
+				<br />
+				<br />
+				{uploadLoading && (
+					<div className="flex justify-center items-center flex-col gap-2">
+						<Spinner />
+						<span>Uploading File...</span>
+					</div>
+				)}
 			</form>
 		</div>
 	);

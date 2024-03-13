@@ -1,7 +1,5 @@
 import { PromptTemplate } from "@langchain/core/prompts";
-import { ChatOpenAI } from "@langchain/openai";
 import { Pinecone } from "@pinecone-database/pinecone";
-import { Document } from "langchain/document";
 import { RunnablePassthrough, RunnableSequence } from "langchain/runnables";
 import { StringOutputParser } from "langchain/schema/output_parser";
 import { chatModel } from "./models";
@@ -9,12 +7,12 @@ import { QuestionAnswerTemplate, StandaloneQuestionTemplate } from "./promptTemp
 import { combineDocuments } from "./utils";
 import { retrieveVectorStore } from "./vectorStore";
 
-export async function getResponseToQuestion(question: string, conversationHistory: string) {
+export async function getResponseToQuestion(question: string, conversationHistory: string, namespace: string) {
 	const standaloneQuestionPrompt = PromptTemplate.fromTemplate(StandaloneQuestionTemplate);
 	const answerPrompt = PromptTemplate.fromTemplate(QuestionAnswerTemplate);
 
-	const vectorStore = await retrieveVectorStore(new Pinecone({ apiKey: process.env.PINECONE_API_KEY! }));
-	const vectorStoreRetriever = vectorStore.asRetriever();
+	const vectorStore = await retrieveVectorStore(new Pinecone({ apiKey: process.env.PINECONE_API_KEY! }), namespace);
+	const vectorStoreRetriever = vectorStore.asRetriever({ searchType: "similarity" });
 
 	//create three separate chains
 	//chain that converts users question to a standalone question, and using the string parser, yields an answer string
@@ -31,19 +29,19 @@ export async function getResponseToQuestion(question: string, conversationHistor
 		combineDocuments,
 	]);
 
-	const chain1 = RunnableSequence.from([
-		{
-			standaloneQuestion: standaloneQuestionChain,
-		},
-		retrieverChain,
-	]);
+	// const chain1 = RunnableSequence.from([
+	// 	{
+	// 		standaloneQuestion: standaloneQuestionChain,
+	// 	},
+	// 	retrieverChain,
+	// ]);
 
 	// const chain1Response = await chain1.invoke({
 	// 	question: question,
 	// });
-	// console.log(combineDocuments(chain1Response));
+	// console.log(chain1Response, namespace);
 
-	// //answer chain, uses the context of docs from the retriever chain along with the user question to answer the question as closely as possible
+	//answer chain, uses the context of docs from the retriever chain along with the user question to answer the question as closely as possible
 	const answerChain = RunnableSequence.from([answerPrompt, chatModel, new StringOutputParser()]);
 
 	const chain = RunnableSequence.from([
@@ -65,6 +63,5 @@ export async function getResponseToQuestion(question: string, conversationHistor
 		question: question,
 		conversationHistory: conversationHistory,
 	});
-
 	return stream;
 }

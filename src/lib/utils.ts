@@ -1,6 +1,7 @@
 import { Document } from "langchain/document";
+import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 
-export type Message = { role: "user" | "ai"; content: string };
+export type Message = { role: "user" | "ai"; content: string; respType?: "similarity" | "analyser" };
 
 export type Chat = { chatId: string; chatName: string; new: boolean };
 
@@ -27,12 +28,10 @@ export function formatMessagesIntoConvHistory(msgs: Message[]): string {
 		.join("\n");
 }
 
-export function scrollChatToBottom(containerRef: React.RefObject<HTMLElement>) {
+export function scrollChatToBottom(containerRef: React.RefObject<HTMLElement>, smooth?: boolean) {
 	if (containerRef.current) {
-		const lastMsg = containerRef.current.lastElementChild;
-		if (lastMsg) {
-			lastMsg.scrollIntoView({ behavior: "smooth", block: "end" });
-		}
+		const div = containerRef.current;
+		div.scrollIntoView({ behavior: smooth ? "smooth" : "instant" });
 	}
 }
 
@@ -45,4 +44,38 @@ export function generateRandomId() {
 /** returns a string that can be used as a pinecone namespace based on the chat name and id */
 export function getNamespaceFromChat(chat: Chat): string {
 	return chat.chatId;
+}
+
+export function formatDownloadJson(json: any) {
+	const elements: Array<any> = json.elements;
+	console.log(elements);
+	let text = "";
+	//seperate with spaces
+	for (const elem of elements) {
+		text += elem.Text + "\n";
+	}
+
+	return text;
+}
+
+/**converts a string to a Document type which can be more easily used by langchain and pinecone to embed and store */
+export function convertTextToDocument(text: string): Document<Record<string, any>>[] {
+	const arr: Document<Record<string, any>>[] = [];
+
+	arr.push(new Document({ pageContent: text, metadata: { source: "blob" } }));
+	return arr;
+}
+
+//**Chunks and splits up documents into smaller pieces using recursive splitting */
+export async function chunkDocuments(docs: Document<Record<string, any>>[]) {
+	//chunk docs using Recursive text splitter
+	//NOTE: experiment with these values and maybe add more properties?
+	const splitter = new RecursiveCharacterTextSplitter({
+		chunkSize: 300,
+		chunkOverlap: 60,
+	});
+
+	//split docs
+	const splitDocs = await splitter.splitDocuments(docs);
+	return splitDocs;
 }

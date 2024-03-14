@@ -10,7 +10,7 @@
 
 
 body {
-
+  padding-left: 16rem;
   /* padding: 20px; */
   color: var(--foreground-rgb);
   background: var(--background-start-rgb);

@@ -3,9 +3,9 @@ import { Pinecone } from "@pinecone-database/pinecone";
 import { RunnablePassthrough, RunnableSequence } from "langchain/runnables";
 import { StringOutputParser } from "langchain/schema/output_parser";
 import { chatModel } from "./models";
-import { QuestionAnswerTemplate, StandaloneQuestionTemplate } from "./promptTemplates";
+import { QuestionAnswerTemplate, StandaloneQuestionTemplate, similaritySearchTemplate } from "./promptTemplates";
 import { combineDocuments } from "./utils";
-import { retrieveVectorStore } from "./vectorStore";
+import { retrieveVectorStore, similaritySearch } from "./vectorStore";
 
 export async function getResponseToQuestion(question: string, conversationHistory: string, namespace: string) {
 	const standaloneQuestionPrompt = PromptTemplate.fromTemplate(StandaloneQuestionTemplate);
@@ -29,18 +29,6 @@ export async function getResponseToQuestion(question: string, conversationHistor
 		combineDocuments,
 	]);
 
-	// const chain1 = RunnableSequence.from([
-	// 	{
-	// 		standaloneQuestion: standaloneQuestionChain,
-	// 	},
-	// 	retrieverChain,
-	// ]);
-
-	// const chain1Response = await chain1.invoke({
-	// 	question: question,
-	// });
-	// console.log(chain1Response, namespace);
-
 	//answer chain, uses the context of docs from the retriever chain along with the user question to answer the question as closely as possible
 	const answerChain = RunnableSequence.from([answerPrompt, chatModel, new StringOutputParser()]);
 
@@ -62,6 +50,32 @@ export async function getResponseToQuestion(question: string, conversationHistor
 	const stream = await chain.stream({
 		question: question,
 		conversationHistory: conversationHistory,
+	});
+	return stream;
+}
+
+/**
+ * given a question and database namespace, will query database and perform a similarity search
+ * on existing embeddings, returning closes matches
+ *
+ * @param query information to search for
+ * @param namespace database namespace to look in for relevant information
+ * @returns stream object with response
+ */
+export async function getRelevantTextSegments(query: string, namespace: string) {
+	const pineconeClient = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
+	// const vectorStore = await retrieveVectorStore(pin, namespace);
+	// const vectorStoreRetriever = vectorStore.asRetriever({ searchType: "similarity" });
+
+	const informationPrompt = PromptTemplate.fromTemplate(similaritySearchTemplate);
+
+	const chain = RunnableSequence.from([informationPrompt, chatModel, new StringOutputParser()]);
+
+	const relevantInfo = await similaritySearch(pineconeClient, query, namespace);
+	console.log(relevantInfo);
+
+	const stream = await chain.stream({
+		information: relevantInfo,
 	});
 	return stream;
 }

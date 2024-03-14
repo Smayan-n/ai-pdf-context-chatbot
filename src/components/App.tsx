@@ -1,10 +1,17 @@
 "use client";
 import { Chat, Message, formatMessagesIntoConvHistory, generateRandomId } from "@/lib/utils";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ChatInterface from "./ChatInterface";
 import FileInput from "./FileInput";
 import SideBar from "./SideBar";
 import Spinner from "./Spinner";
+
+//load initial chats for deliverables
+const initialChats: Chat[] = [
+	{ chatId: "459ldfbstbg", chatName: "Global Warming", new: false },
+	{ chatId: "thngcunmbwk", chatName: "German Law", new: false },
+];
 
 //Main application component that will keep track of all state
 interface AppProps {
@@ -14,9 +21,11 @@ interface AppProps {
 function App(props: AppProps) {
 	const { chatId } = props;
 
-	const [chatList, setChatList] = useState<Chat[]>([]);
+	const [chatList, setChatList] = useState<Chat[]>(initialChats);
 	//currently selected chat if any
 	const [currentChat, setCurrentChat] = useState<Chat | undefined>(undefined);
+	//for display purposes only
+	const [fileName, setFileName] = useState<string>("");
 
 	//load chatlist
 	useEffect(() => {
@@ -49,7 +58,7 @@ function App(props: AppProps) {
 	};
 
 	//called when a pdf file for a new chat is uploaded to pinecone successfully
-	const handleFileUploaded = (chatFor: Chat) => {
+	const handleFileUploaded = (chatFor: Chat, fileName: string) => {
 		//change 'new' property of chatFor in list to false so chatInterface can be rendered
 		const copyList = chatList.slice(0);
 		const changedList = copyList.map((chat) => {
@@ -60,6 +69,7 @@ function App(props: AppProps) {
 			}
 		});
 		setChatList(changedList);
+		setFileName(fileName);
 	};
 
 	//render different components based on passed in chatId
@@ -67,19 +77,20 @@ function App(props: AppProps) {
 	return (
 		<>
 			<SideBar onNewChatCreate={handleNewChatCreate} chatList={chatList} currentChat={currentChat}></SideBar>
-			<div className="h-[100vh] ml-64">
-				{currentChat === undefined ? (
-					<div className="flex h-[100%] justify-center items-center flex-col gap-2">
-						<Spinner />
-					</div>
-				) : chatId === "no-chat-open" ? (
+			<div className="h-[100vh]">
+				{chatId === "no-chat-open" ? (
 					<div className="text-2xl flex items-center justify-center h-screen p-10">
 						No chat open! Please select a chat or create a new one
+					</div>
+				) : currentChat === undefined ? (
+					<div className="flex h-[100%] justify-center items-center flex-col gap-2">
+						<Spinner />
+						<span>Loading...</span>
 					</div>
 				) : currentChat?.new || currentChat === undefined ? (
 					<FileInput currentChat={currentChat} onFileUploaded={handleFileUploaded} />
 				) : (
-					<ChatInterface currentChat={currentChat}></ChatInterface>
+					<ChatInterface currentChat={currentChat} fileName={fileName}></ChatInterface>
 				)}
 				{}
 			</div>

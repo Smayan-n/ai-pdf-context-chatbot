@@ -1,14 +1,19 @@
 
 .main-chat-area::-webkit-scrollbar{
-    width: 10px;
+    width: 8px;
+    height: 8px;
     border-radius: 5px;
 }
 .main-chat-area::-webkit-scrollbar-track {
     background: #3d3d3d;
+    border-radius: 5px;
+
 
 }
 .main-chat-area::-webkit-scrollbar-thumb {
     background: #969595;
+    border-radius: 5px;
+
 }
 
 .q-textarea{
@@ -17,6 +22,7 @@
 
 .q-textarea::-webkit-scrollbar{
     width: 4px;
+    height: 4px;
     z-index: -1000;
 
 }
@@ -31,11 +37,13 @@
 
 .q-textarea::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: 5px;
 
 
 }
 .q-textarea::-webkit-scrollbar-thumb {
-    background: #626262;
+    background: #707070;
+    border-radius: 5px;
 
 }
 
@@ -46,4 +54,17 @@
 
 .sidebar{
     background-color: rgb(32, 32, 32)
+}
+
+.sidebar::-webkit-scrollbar{
+    width: 6px;
+    height: 8px;
+}
+.sidebar::-webkit-scrollbar-track {
+    background: inherit;
+
+}
+.sidebar::-webkit-scrollbar-thumb {
+    background: #535353;
+    border-radius: 5px;
 }

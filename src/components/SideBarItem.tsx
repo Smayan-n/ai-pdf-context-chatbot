@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 function SideBarItem(props: {
 	title: string;
@@ -12,6 +12,15 @@ function SideBarItem(props: {
 	const router = useRouter();
 
 	const [chatName, setChatName] = useState("");
+	const inputRef = useRef<HTMLInputElement>(null);
+
+	useEffect(() => {
+		//focus on chat name input if it exists (new chat being made)
+		if (inputRef.current) {
+			inputRef.current.focus();
+		}
+	}, [inputRef]);
+
 	//if onSetChatName is not undefined, input part of componenent is active
 	//other list stuff is conditionally rendered
 	return (
@@ -51,7 +60,8 @@ function SideBarItem(props: {
 						}}
 					>
 						<input
-							placeholder="name"
+							ref={inputRef}
+							placeholder="chat name"
 							onChange={(evt) => setChatName(evt.target.value)}
 							className="break-words h-10 scrollbar-hidden q-textarea border border-gray-400 focus:border-gray-200 rounded-lg w-full resize-none bg-transparent focus:ring-0 focus-visible:ring-0 dark:bg-transparent py-[10px] pr-10 md:py-3.5 md:pr-12 max-h-[25dvh] placeholder-black/50 dark:placeholder-white/50 pl-3 md:pl-4 flex-grow"
 						></input>

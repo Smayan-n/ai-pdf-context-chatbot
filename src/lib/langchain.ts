@@ -7,6 +7,15 @@ import { QuestionAnswerTemplate, StandaloneQuestionTemplate, similaritySearchTem
 import { combineDocuments } from "./utils";
 import { retrieveVectorStore, similaritySearch } from "./vectorStore";
 
+/**
+ * call chain that takes user's question and conv history and fetches similar results from pinecone db
+ * and passes that as context to chat llm with engineered prompt to get pdf tailored response
+ *
+ * @param question user's question
+ * @param conversationHistory previous conversation history
+ * @param namespace database namespace to look in for relevant information
+ * @returns stream with response
+ */
 export async function getResponseToQuestion(question: string, conversationHistory: string, namespace: string) {
 	const standaloneQuestionPrompt = PromptTemplate.fromTemplate(StandaloneQuestionTemplate);
 	const answerPrompt = PromptTemplate.fromTemplate(QuestionAnswerTemplate);

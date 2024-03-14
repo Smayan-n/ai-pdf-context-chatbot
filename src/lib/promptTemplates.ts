@@ -17,11 +17,9 @@ Helpful answer:
 export const similaritySearchTemplate = `given information, you are to understand it and format in a better
 way to make it easier to read. But ensure that you, UNDER NO CIRCUMSTANCES CHANGE THE INFORMATION! Keep the words
 as is, just format it to make sense. I only want you to add the word "__POINT__" in front of every different point or sentence or piece
-of information that looks different.
+of information that looks different. If you get no information or the information does not make sense, just say "no results"
 
 information: {information}
-
-response: 
 `;
 
 // export const similaritySearchTemplate = `given the following information, please clean up the formatting and make it easier to read by splitting different information and sentences into separate

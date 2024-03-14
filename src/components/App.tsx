@@ -21,7 +21,7 @@ interface AppProps {
 function App(props: AppProps) {
 	const { chatId } = props;
 
-	const [chatList, setChatList] = useState<Chat[]>(initialChats);
+	const [chatList, setChatList] = useState<Chat[]>(chatId === "no-chat-open" ? initialChats : []);
 	//currently selected chat if any
 	const [currentChat, setCurrentChat] = useState<Chat | undefined>(undefined);
 	//for display purposes only
@@ -40,6 +40,7 @@ function App(props: AppProps) {
 	useEffect(() => {
 		//update local store
 		if (chatList.length !== 0) {
+			console.log(chatList);
 			localStorage.setItem("chat-list", JSON.stringify(chatList));
 		}
 		//and also set current chat with id passed in as prop

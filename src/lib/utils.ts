@@ -71,8 +71,8 @@ export async function chunkDocuments(docs: Document<Record<string, any>>[]) {
 	//chunk docs using Recursive text splitter
 	//NOTE: experiment with these values and maybe add more properties?
 	const splitter = new RecursiveCharacterTextSplitter({
-		chunkSize: 300,
-		chunkOverlap: 60,
+		chunkSize: 150,
+		chunkOverlap: 30,
 	});
 
 	//split docs
